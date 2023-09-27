@@ -4,6 +4,9 @@
 # Ignore all JSON files
 *.json
 
+# Ignore all EXCEL files
+*.xlsx
+
 # Ignore all HTML files
 *.html
 

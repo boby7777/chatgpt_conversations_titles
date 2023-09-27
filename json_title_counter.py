@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import pandas as pd
 from dotenv import load_dotenv
 import os
 
@@ -10,46 +11,18 @@ json_filename = os.getenv("JSON_FILENAME")
 # change the path
 json_file_path = f"./{json_filename}"
 
-# read json file
+# read json file and load into pandas DataFrame
 with open(json_file_path) as json_file:
     json_data = json.load(json_file)
+    df = pd.DataFrame(json_data)
 
-def count_titles_per_day(json_data):
-    titles_per_day = {}
+# convert timestamps to dates
+df['date'] = pd.to_datetime(df['create_time'], unit='s').dt.date
 
-    for entry in json_data:
-        # get timestamp of create_time
-        create_time = entry['create_time']
-        # cnvert timestamp to date
-        date = datetime.fromtimestamp(create_time).date()
+# Drop all columns except 'title' and 'date'
+df = df[['title', 'date']]
 
-        # Check if the date already exists in the dictionary, if not, add it.
-        if date not in titles_per_day:
-            titles_per_day[date] = 0
-
-        # increase title counts
-        titles_per_day[date] += 1
-
-    return titles_per_day
-
-# caculate counts of date
-titles_per_day = count_titles_per_day(json_data)
-
-# print date and counts
-for date, count in titles_per_day.items():
-    print(f"{date}: {count} titles")
-
-    # print title
-    index = 1
-    for item in json_data:
-        title = item['title']
-        item_create_time = datetime.fromtimestamp(item['create_time']).date()
-        if item_create_time == date:
-            print(f"{index}. {title}")
-            index = index + 1
-
-
-# Total
-count = len(json_data)
-print() # empty line
-print(f"Total: {count} titles")
+# Write DataFrame to Excel file
+output_filename = "output.xlsx"
+df.to_excel(output_filename, index=False, engine='openpyxl')
+print(f"Excel file saved as {output_filename}")
